@@ -1,61 +1,47 @@
 $namesFile = "names.txt"
 $imageFile = "image.gif" 
-
-# Target the fresh, symbol-free root folder we just created
-$outputBaseDir = "C:\SortedLibrary"
-
-# Build the image file name using exact character codes to prevent encoding glitches
 $newImageName = "sharkn3t, by wikdlabs" + [char]169 + ".gif"
 
 $currentDir = (Get-Item .).FullName
-$sourceNamesPath = $currentDir + "\" + $namesFile
-$sourceImagePath = $currentDir + "\" + $imageFile
 
-if (-not (Test-Path -LiteralPath $sourceNamesPath)) {
+if (-not (Test-Path -LiteralPath ($currentDir + "\" + $namesFile))) {
     Write-Error "Cannot find names.txt in this folder!"
     Read-Host -Prompt "Press Enter to exit"
     exit
 }
 
-# Ensure the new C:\SortedLibrary base directory exists
-if (-not (Test-Path -LiteralPath $outputBaseDir)) {
-    $null = New-Item -ItemType Directory -Force -LiteralPath $outputBaseDir
-}
-
 # Read names with full UTF-8 support
-$entries = [System.IO.File]::ReadAllLines($sourceNamesPath, [System.Text.Encoding]::UTF8)
+$entries = [System.IO.File]::ReadAllLines(($currentDir + "\" + $namesFile), [System.Text.Encoding]::UTF8)
 $processedNames = New-Object System.Collections.Generic.HashSet[string]
 
-Write-Host "Building a pristine, sorted library directly inside $outputBaseDir..." -ForegroundColor Cyan
+Write-Host "Re-building and sorting 32,000+ folders into physical A-Z buckets..." -ForegroundColor Cyan
 
 foreach ($line in $entries) {
     $originalName = $line.Trim()
     if ($originalName) {
-        
-        # Skip duplicate lines to keep it at 32,000 unique items
         if (-not $processedNames.Add($originalName)) { continue }
 
-        # Clean individual folder names
+        # Clean folder names
         $folderName = $originalName -replace '[\x00-\x1F\\/:*?"<>|]', ' '
         $folderName = $folderName.Trim() -replace '\.+$', ''
         $folderName = $folderName.Trim()
 
         if (-not $folderName) { continue }
 
-        # Enforce character limits for subfolders
         if ($folderName.Length -gt 45) {
             $shortFolder = $folderName.Substring(0, 45).Trim() -replace '\.+$', ''
         } else {
             $shortFolder = $folderName
         }
 
-        # ALPHABETICAL ROUTING ENGINE
+        # ALPHABET ROUTING
         $firstChar = $shortFolder.Substring(0,1).ToUpper()
         $alphaGroup = if ($firstChar -notmatch '^[A-Z]$') { "#" } else { $firstChar }
 
-        # Hardcode explicit target paths pointing safely away from the old folder symbols
-        $alphaParentFolder = $outputBaseDir + "\" + $alphaGroup
+        # Explicit absolute text paths
+        $alphaParentFolder = $currentDir + "\" + $alphaGroup
         $targetFolder = $alphaParentFolder + "\" + $shortFolder
+        $sourceImagePath = $currentDir + "\" + $imageFile
 
         $newImagePath = $targetFolder + "\" + $newImageName
         $newGooglePath = $targetFolder + "\" + $shortFolder + " - Google.url"
@@ -63,62 +49,54 @@ foreach ($line in $entries) {
         $imgShortcutPath = $targetFolder + "\" + $shortFolder + " - Google Images.url"
         
         try {
-            # 1. Create the Main Alphabet parent folder (A, B, C...) inside C:\SortedLibrary
+            # Force create parent A-Z folder
             if (-not (Test-Path -LiteralPath $alphaParentFolder)) {
                 $null = New-Item -ItemType Directory -Force -LiteralPath $alphaParentFolder
             }
-
-            # 2. Create the unique item folder inside the new alphabet parent folder
+            # Force create subfolder inside parent A-Z folder
             if (-not (Test-Path -LiteralPath $targetFolder)) {
-                $null = New-Item -ItemType Directory -Force -LiteralPath $targetFolder
+                $null = New-Object System.IO.DirectoryInfo($targetFolder)
+                [System.IO.Directory]::CreateDirectory($targetFolder) | Out-Null
             }
-            
-            # 3. GIF COPY
+            # Copy GIF
             if ((Test-Path -LiteralPath $sourceImagePath) -and -not (Test-Path -LiteralPath $newImagePath)) {
                 Copy-Item -LiteralPath $sourceImagePath -Destination $newImagePath -Force
             }
-
-            # 4. GOOGLE LINK SHORTCUT
+            # Google Shortcut
             if (-not (Test-Path -LiteralPath $newGooglePath)) {
                 $encodedQuery = [Uri]::EscapeDataString($originalName)
-                $protocol = "https:" + [char]47 + [char]47
-                $domain = "://google.com" + [char]47
-                $targetUrl = $protocol + $domain + "search?q=" + $encodedQuery
+                $targetUrl = "https:" + [char]47 + [char]47 + "://google.com" + [char]47 + "search?q=" + $encodedQuery
                 $shortcutContent = "[InternetShortcut]" + "`r`n" + "URL=" + $targetUrl
                 $stream = [System.IO.StreamWriter]::new($newGooglePath, $false, [System.Text.Encoding]::UTF8)
                 $stream.Write($shortcutContent)
                 $stream.Close()
             }
-            
-            # 5. YOUTUBE SHORTCUT
+            # YouTube Shortcut
             if (-not (Test-Path -LiteralPath $ytShortcutPath)) {
                 $encodedQuery = [Uri]::EscapeDataString($originalName)
-                $protocol = "https:" + [char]47 + [char]47
-                $domain = "://youtube.com" + [char]47
-                $targetUrl = $protocol + $domain + "results?search_query=" + $encodedQuery
+                $targetUrl = "https:" + [char]47 + [char]47 + "://youtube.com" + [char]47 + "results?search_query=" + $encodedQuery
                 $shortcutContent = "[InternetShortcut]" + "`r`n" + "URL=" + $targetUrl
                 $stream = [System.IO.StreamWriter]::new($ytShortcutPath, $false, [System.Text.Encoding]::UTF8)
                 $stream.Write($shortcutContent)
                 $stream.Close()
             }
-
-            # 6. GOOGLE IMAGES SHORTCUT
+            # Google Images Shortcut
             if (-not (Test-Path -LiteralPath $imgShortcutPath)) {
                 $encodedQuery = [Uri]::EscapeDataString($originalName)
-                $protocol = "https:" + [char]47 + [char]47
-                $domain = "://google.com" + [char]47
-                $targetUrl = $protocol + $domain + "search?tbm=isch&q=" + $encodedQuery
+                $targetUrl = "https:" + [char]47 + [char]47 + "://google.com" + [char]47 + "search?tbm=isch&q=" + $encodedQuery
                 $shortcutContent = "[InternetShortcut]" + "`r`n" + "URL=" + $targetUrl
                 $stream = [System.IO.StreamWriter]::new($imgShortcutPath, $false, [System.Text.Encoding]::UTF8)
                 $stream.Write($shortcutContent)
                 $stream.Close()
             }
-        }
-        catch {
-            if ($stream) { $stream.Close() }
-        }
+        } catch {}
     }
 }
 
-Write-Host "Success! Check C:\SortedLibrary to view your perfectly generated A-Z directories." -ForegroundColor Green
+# FORCE WINDOWS TO REFRESH THE SCREEN IMMEDIATELY
+$shell = New-Object -ComObject Shell.Application
+$shell.Namespace($currentDir).Self.InvokeVerb("Properties") | Out-Null
+(New-Object -ComObject WScript.Shell).SendKeys("{F5}")
+
+Write-Host "Success! The system has been forced to refresh. Look for the A-Z folders now!" -ForegroundColor Green
 Read-Host -Prompt "Press Enter to finish"

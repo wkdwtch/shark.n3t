@@ -1,0 +1,34 @@
+vbscriptSet fso = CreateObject("Scripting.FileSystemObject")
+Set shell = CreateObject("WScript.Shell")
+Set txt = fso.OpenTextFile("names.txt", 1)
+
+Do Until txt.AtEndOfStream
+    originalName = Trim(txt.ReadLine)
+    If originalName <> "" Then
+        ' Clean the name for Windows file compliance
+        folderName = originalName
+        forbidden = Array("\", "/", ":", "*", "?", """", "<", ">", "|")
+        For Each char In forbidden
+            folderName = Replace(folderName, char, " ")
+        Next
+        folderName = Trim(folderName)
+
+        ' Create the folder safely
+        If Not fso.FolderExists(folderName) Then fso.CreateFolder(folderName)
+        
+        ' Convert spaces and special characters for a clean URL string
+        searchQuery = Replace(originalName, " ", "+")
+        searchQuery = Replace(searchQuery, "&", "%26")
+        
+        ' Hardcode the domain and query parameter in separate, forced segments
+        targetUrl = "https:" & Chr(47) & Chr(47) & "://google.com" & Chr(47) & "search?q=" & searchQuery
+        
+        ' Create a native Windows Internet Shortcut named after the item itself
+        shortcutPath = folderName & "\" & folderName & ".url"
+        Set shortcut = shell.CreateShortcut(shortcutPath)
+        shortcut.TargetPath = targetUrl
+        shortcut.Save
+    End If
+Loop
+txt.Close
+MsgBox "Done! Custom-named shortcuts successfully created.", 64, "Success"
