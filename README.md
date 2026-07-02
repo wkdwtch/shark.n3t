@@ -5,7 +5,7 @@ shark.n3t runs on a single powershell oommand executed with a batch file.
 
 in this repository the names list (a txt document with the names of what the powershell command creates file-names with) / the start.bat batch file (with which the powershell command is executed) / and the powershell command (a ps1 file run entirely in the same folder as the index)
 
-shark.n3t includes a list of 52,000 mp3 titles, ranging from all genres, and can be edited to the users usage. 
+shark.n3t includes a list of 56,600 mp3 titles, ranging from all genres, and can be edited to the users usage. 
 
 TO RUN THE COMMAND :
 
