@@ -1,12 +1,6 @@
 # shark.n3t
 shark.n3t is an open source music database that compiles a list of files into folders sorted alphabetically.
 
-wwwwwww   w                       w    w         w     w           a
-w         w                       w  w           w w   w      aaaaaaaaaa
-wwwwwww   wwwwww  wwwwwa   aaaaa  ww             w  w  w  wwwwwww  a
-      w   w    w  w    a   a   a  w  w     x  x  w   w w  wwwwwww  w
-wwwwwww   w    w  aaaaaaaa a      w   w    x  x  w    ww  wwwwwww  w
-
 shark.n3t runs on a single powershell oommand executed with a batch file. 
 
 in this repository the names list (a txt document with the names of what the powershell command creates file-names with) / the start.bat batch file (with which the powershell command is executed) / and the powershell command (a ps1 file run entirely in the same folder as the index)
