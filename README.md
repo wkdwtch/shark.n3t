@@ -15,7 +15,7 @@ RESULT :
 
 an alphabetically arranged database with the nameslist as folder names
 
-note : the folders will include 3 links : a google image search url link, a google search url link, a youtube search url link, and the image of choice. 
+note : the folders will include 3 links and an image of choice : a google image search url link, a google search url link, a youtube search url link, and the image of choice. 
 
 have fuN!
 
