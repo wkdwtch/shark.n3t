@@ -1,41 +1,51 @@
 $namesFile = "names.txt"
 $imageFile = "image.gif" 
 
-# Target the fresh, symbol-free root folder we just created
-$outputBaseDir = "C:\SortedLibrary"
+# Target base library folder pointing safely to your Desktop
+$outputBaseDir = "$env:USERPROFILE\Desktop\SortedLibrary"
 
-# Build the image file name using exact character codes to prevent encoding glitches
+# Build the safe image file name
 $newImageName = "sharkn3t, by wikdlabs" + [char]169 + ".gif"
 
 $currentDir = (Get-Item .).FullName
-$sourceNamesPath = $currentDir + "\" + $namesFile
-$sourceImagePath = $currentDir + "\" + $imageFile
+$sourceNamesPath = Join-Path $currentDir $namesFile
+$sourceImagePath = Join-Path $currentDir $imageFile
 
-if (-not (Test-Path -LiteralPath $sourceNamesPath)) {
-    Write-Error "Cannot find names.txt in this folder!"
+# Print debugging variables to screen
+Write-Host "Current Script Location: $currentDir" -ForegroundColor Yellow
+Write-Host "Target Library Base: $outputBaseDir" -ForegroundColor Yellow
+
+if (-not (Test-Path -Path $sourceNamesPath)) {
+    Write-Error "CRITICAL: Cannot find '$namesFile' inside: $currentDir"
     Read-Host -Prompt "Press Enter to exit"
     exit
 }
 
-# Ensure the new C:\SortedLibrary base directory exists
-if (-not (Test-Path -LiteralPath $outputBaseDir)) {
-    $null = New-Item -ItemType Directory -Force -LiteralPath $outputBaseDir
+# Ensure base directory exists (Modified for legacy PowerShell compatibility)
+if (-not (Test-Path -Path $outputBaseDir)) {
+    try {
+        $null = New-Item -ItemType Directory -Force -Path $outputBaseDir
+    } catch {
+        Write-Error "CRITICAL: Failed to create base directory $outputBaseDir. Reason: $_"
+        Read-Host -Prompt "Press Enter to exit"
+        exit
+    }
 }
 
-# Read names with full UTF-8 support
+# Read names with strict UTF-8 support
 $entries = [System.IO.File]::ReadAllLines($sourceNamesPath, [System.Text.Encoding]::UTF8)
 $processedNames = New-Object System.Collections.Generic.HashSet[string]
 
-Write-Host "Building a pristine, sorted library directly inside $outputBaseDir..." -ForegroundColor Cyan
+Write-Host "Processing $($entries.Count) lines from text database..." -ForegroundColor Cyan
 
 foreach ($line in $entries) {
     $originalName = $line.Trim()
     if ($originalName) {
         
-        # Skip duplicate lines to keep it at 32,000 unique items
+        # Deduplication engine
         if (-not $processedNames.Add($originalName)) { continue }
 
-        # Clean individual folder names
+        # Clean string to match valid folder standards
         $folderName = $originalName -replace '[\x00-\x1F\\/:*?"<>|]', ' '
         $folderName = $folderName.Trim() -replace '\.+$', ''
         $folderName = $folderName.Trim()
@@ -49,34 +59,38 @@ foreach ($line in $entries) {
             $shortFolder = $folderName
         }
 
-        # ALPHABETICAL ROUTING ENGINE
+        # Alphabetical Group Routing Engine
         $firstChar = $shortFolder.Substring(0,1).ToUpper()
         $alphaGroup = if ($firstChar -notmatch '^[A-Z]$') { "#" } else { $firstChar }
 
-        # Hardcode explicit target paths pointing safely away from the old folder symbols
-        $alphaParentFolder = $outputBaseDir + "\" + $alphaGroup
-        $targetFolder = $alphaParentFolder + "\" + $shortFolder
+        # Combine folder destination strings cleanly
+        $alphaParentFolder = Join-Path $outputBaseDir $alphaGroup
+        $targetFolder = Join-Path $alphaParentFolder $shortFolder
 
-        $newImagePath = $targetFolder + "\" + $newImageName
-        $newGooglePath = $targetFolder + "\" + $shortFolder + " - Google.url"
-        $ytShortcutPath = $targetFolder + "\" + $shortFolder + " - YouTube.url"
-        $imgShortcutPath = $targetFolder + "\" + $shortFolder + " - Google Images.url"
+        $newImagePath = Join-Path $targetFolder $newImageName
+        $newGooglePath = Join-Path $targetFolder ($shortFolder + " - Google.url")
+        $ytShortcutPath = Join-Path $targetFolder ($shortFolder + " - YouTube.url")
+        $imgShortcutPath = Join-Path $targetFolder ($shortFolder + " - Google Images.url")
         
+        $stream = $null
         try {
-            # 1. Create the Main Alphabet parent folder (A, B, C...) inside C:\SortedLibrary
-            if (-not (Test-Path -LiteralPath $alphaParentFolder)) {
-                $null = New-Item -ItemType Directory -Force -LiteralPath $alphaParentFolder
+            # 1. Create the Main Alphabet parent folder (A, B, C...)
+            if (-not (Test-Path -Path $alphaParentFolder)) {
+                $null = New-Item -ItemType Directory -Force -Path $alphaParentFolder
             }
 
-            # 2. Create the unique item folder inside the new alphabet parent folder
-            if (-not (Test-Path -LiteralPath $targetFolder)) {
-                $null = New-Item -ItemType Directory -Force -LiteralPath $targetFolder
+            # 2. Create the unique item folder
+            if (-not (Test-Path -Path $targetFolder)) {
+                $null = New-Item -ItemType Directory -Force -Path $targetFolder
             }
             
-            # 3. GIF COPY
-            if ((Test-Path -LiteralPath $sourceImagePath) -and -not (Test-Path -LiteralPath $newImagePath)) {
-                Copy-Item -LiteralPath $sourceImagePath -Destination $newImagePath -Force
+            # 3. Process image file replication (.gif copy)
+            if ((Test-Path -Path $sourceImagePath) -and -not (Test-Path -Path $newImagePath)) {
+                Copy-Item -Path $sourceImagePath -Destination $newImagePath -Force
             }
+
+            # URL ENCODING FIXED: Pointing strictly to the parsed folder name
+            $encodedQuery = [Uri]::EscapeDataString($shortFolder)
 
             # 4. GOOGLE LINK SHORTCUT
             if (-not (Test-Path -LiteralPath $newGooglePath)) {
@@ -114,11 +128,13 @@ foreach ($line in $entries) {
                 $stream.Close()
             }
         }
+
         catch {
+            Write-Warning "Skipped item '$originalName' due to file-system block: $_"
             if ($stream) { $stream.Close() }
         }
     }
 }
 
-Write-Host "Success! Check C:\SortedLibrary to view your perfectly generated A-Z directories." -ForegroundColor Green
+Write-Host "Success! Check your Desktop to view your perfectly generated A-Z directories." -ForegroundColor Green
 Read-Host -Prompt "Press Enter to finish"
