@@ -27,3 +27,5 @@ DOWNLOAD DATABASE ver. 1.0.1 :
 https://www.mediafire.com/file/a7xbx7oso1vw8gt/sharkn3t_%2528by_wikdlabs%25C2%25A9%2529.zip/file?fbclid=IwdGRjcASzNvljbGNrBLM29GV4dG4DYWVtAjExAHNydGMGYXBwX2lkDDM1MDY4NTUzMTcyOAABHt2dQpVCopSlifOBWs0KAuz_UzHuOyn5Wn4TWfhzv54-l-WRpxD0T7T-gvaz_aem_kUDMMabmymU9FlWSFNlsSg
 
 DOWNLOAD DATABASE ver. 1.1.0 (latest) :
+
+https://www.mediafire.com/file/sasdbw1zy2s5q93/sharkn3t_1.1.0_%2528by_wikdlabs%25C2%25A9%2529.zip/file
