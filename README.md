@@ -1,5 +1,5 @@
 # shark.n3t
-shark.n3t is an open source music database that compiles a list of filenames into folders sorted alphabetically, and places urls for Google Search, Google Image Search and Youtube Search in each folder respectively. Links on PC/MAC open with any browser // Links on Android/iOS open with Opera Browser
+shark.n3t is an open source database compiler that compiles a list of filenames into folders sorted alphabetically, and places urls for Google Search, Google Image Search and Youtube Search in each folder respectively. Links on PC/MAC open with any browser // Links on Android/iOS open with Opera Browser
 
 shark.n3t runs on a single powershell command executed with a batch file. Alternative methods include a python script, VBS script and batch files.
 
